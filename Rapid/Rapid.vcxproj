@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{0dfb2c84-ddfa-4889-be70-1e6a168765d0}</ProjectGuid>
+    <RootNamespace>Rapid</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\opt\openblas\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\opt\openblas\lib;$(SolutionDir)Rapid\lib\x86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libopenblas.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\opt\openblas\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\opt\openblas\lib;$(SolutionDir)Rapid\lib\x86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libopenblas.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\opt\openblas\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\opt\openblas\lib;$(SolutionDir)Rapid\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libopenblas.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\opt\openblas\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\opt\openblas\lib;$(SolutionDir)Rapid\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libopenblas.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Rapid.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\rapid\array.h" />
+    <ClInclude Include="include\rapid\array\prettyPrint.h" />
+    <ClInclude Include="include\rapid\graphics.h" />
+    <ClInclude Include="include\rapid\graphics\CImg\CImg.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\config\ftconfig.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\config\ftheader.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\config\ftmodule.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\config\ftoption.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\config\ftstdlib.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\config\integer-types.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\config\mac-support.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\config\public-macros.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\freetype.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftadvanc.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftbbox.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftbdf.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftbitmap.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftbzip2.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftcache.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftchapters.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftcid.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftcolor.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftdriver.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\fterrdef.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\fterrors.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftfntfmt.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftgasp.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftglyph.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftgxval.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftgzip.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftimage.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftincrem.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftlcdfil.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftlist.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftlzw.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftmac.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftmm.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftmodapi.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftmoderr.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftotval.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftoutln.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftparams.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftpfr.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftrender.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftsizes.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftsnames.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftstroke.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftsynth.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftsystem.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\fttrigon.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\fttypes.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ftwinfnt.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\t1tables.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\ttnameid.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\tttables.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\freetype\tttags.h" />
+    <ClInclude Include="include\rapid\graphics\freetype\ft2build.h" />
+    <ClInclude Include="include\rapid\graphics\glew\include\GL\eglew.h" />
+    <ClInclude Include="include\rapid\graphics\glew\include\GL\glew.h" />
+    <ClInclude Include="include\rapid\graphics\glew\include\GL\glxew.h" />
+    <ClInclude Include="include\rapid\graphics\glew\include\GL\wglew.h" />
+    <ClInclude Include="include\rapid\graphics\GLFW\glfw3.h" />
+    <ClInclude Include="include\rapid\graphics\GLFW\glfw3native.h" />
+    <ClInclude Include="include\rapid\graphics\graphicsCore.h" />
+    <ClInclude Include="include\rapid\graphics\messageBoxCore.h" />
+    <ClInclude Include="include\rapid\graphics\pixelEngineCore.h" />
+    <ClInclude Include="include\rapid\graphics\textRenderer.h" />
+    <ClInclude Include="include\rapid\internal.h" />
+    <ClInclude Include="include\rapid\io.h" />
+    <ClInclude Include="include\rapid\IO\csvReader.h" />
+    <ClInclude Include="include\rapid\IO\createDir.h" />
+    <ClInclude Include="include\rapid\IO\systemExecute.h" />
+    <ClInclude Include="include\rapid\math.h" />
+    <ClInclude Include="include\rapid\mathParserCore.h" />
+    <ClInclude Include="include\rapid\matrix.h" />
+    <ClInclude Include="include\rapid\matrix\matrixArrayView.h" />
+    <ClInclude Include="include\rapid\matrix\matrixCore.h" />
+    <ClInclude Include="include\rapid\matrix\tinyMatrix.h" />
+    <ClInclude Include="include\rapid\messageBox.h" />
+    <ClInclude Include="include\rapid\array\arrayCore.h" />
+    <ClInclude Include="include\rapid\network.h" />
+    <ClInclude Include="include\rapid\network\activations.h" />
+    <ClInclude Include="include\rapid\network\deep.h" />
+    <ClInclude Include="include\rapid\network\layers\layerBase.h" />
+    <ClInclude Include="include\rapid\network\layers\deepLayer.h" />
+    <ClInclude Include="include\rapid\network\layers\lstmLayer.h" />
+    <ClInclude Include="include\rapid\network\networkCore.h" />
+    <ClInclude Include="include\rapid\rapid.h" />
+    <ClInclude Include="include\rapid\vector.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\rapid\graphics\glew\doc\advanced.html" />
+    <None Include="include\rapid\graphics\glew\doc\basic.html" />
+    <None Include="include\rapid\graphics\glew\doc\build.html" />
+    <None Include="include\rapid\graphics\glew\doc\credits.html" />
+    <None Include="include\rapid\graphics\glew\doc\glew.html" />
+    <None Include="include\rapid\graphics\glew\doc\glxew.html" />
+    <None Include="include\rapid\graphics\glew\doc\index.html" />
+    <None Include="include\rapid\graphics\glew\doc\install.html" />
+    <None Include="include\rapid\graphics\glew\doc\log.html" />
+    <None Include="include\rapid\graphics\glew\doc\wglew.html" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
