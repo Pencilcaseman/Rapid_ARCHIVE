@@ -284,7 +284,10 @@
     <ClInclude Include="include\rapid\graphics\pixelEngineCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\rapid\mathParserCore.h">
+    <ClInclude Include="include\rapid\parser\mathParserCore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rapid\parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

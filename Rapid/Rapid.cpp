@@ -8,7 +8,9 @@
 
 int main()
 {
-	std::cout << "This is RAPID!\n";
+	std::string text("SET x TO 10+10/5");
+	for (const auto &token : rapid::splitExpression(text, {" ", "+", "-", "*", "/"}))
+		std::cout << "Token: " << token << "\n";
 
 	return 0;
 }

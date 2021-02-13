@@ -233,7 +233,8 @@
     <ClInclude Include="include\rapid\IO\createDir.h" />
     <ClInclude Include="include\rapid\IO\systemExecute.h" />
     <ClInclude Include="include\rapid\math.h" />
-    <ClInclude Include="include\rapid\mathParserCore.h" />
+    <ClInclude Include="include\rapid\parser.h" />
+    <ClInclude Include="include\rapid\parser\mathParserCore.h" />
     <ClInclude Include="include\rapid\matrix.h" />
     <ClInclude Include="include\rapid\matrix\matrixArrayView.h" />
     <ClInclude Include="include\rapid\matrix\matrixCore.h" />

@@ -22,6 +22,7 @@
 #include <cassert>
 #include <memory>
 #include <stdexcept>
+#include <regex>
 
 #include <conio.h>
 #include <sys/stat.h>
