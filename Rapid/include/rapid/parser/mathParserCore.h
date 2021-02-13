@@ -32,6 +32,7 @@ namespace rapid
 
 			end = nearest;
 			res.emplace_back(std::string(expression.begin() + start, expression.begin() + end));
+			res.emplace_back(delimiters[index]);
 			start = end + 1;
 		}
 
