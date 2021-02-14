@@ -8,9 +8,18 @@
 
 int main()
 {
-	std::string text("SET x TO 10+10/5");
-	for (const auto &token : rapid::splitExpression(text, {" ", "+", "-", "*", "/"}))
-		std::cout << "Token: " << token << "\n";
+	std::string text("(5+5)");
+	rapid::ExpressionSolver solver(text);
+	solver.expressionToInfix();
+	solver.infixToPostfix();
+	
+	for (const auto &token : solver.infix)
+		std::cout << token << " ";
+	std::cout << "\n";
+	
+	for (const auto &token : solver.postfix)
+		std::cout << token << " ";
+	std::cout << "\n";
 
 	return 0;
 }

@@ -23,6 +23,7 @@
 #include <memory>
 #include <stdexcept>
 #include <regex>
+#include <stack>
 
 #include <conio.h>
 #include <sys/stat.h>

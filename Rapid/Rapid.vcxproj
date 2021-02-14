@@ -248,6 +248,7 @@
     <ClInclude Include="include\rapid\network\layers\deepLayer.h" />
     <ClInclude Include="include\rapid\network\layers\lstmLayer.h" />
     <ClInclude Include="include\rapid\network\networkCore.h" />
+    <ClInclude Include="include\rapid\parser\utils.h" />
     <ClInclude Include="include\rapid\rapid.h" />
     <ClInclude Include="include\rapid\vector.h" />
   </ItemGroup>
@@ -262,6 +263,7 @@
     <None Include="include\rapid\graphics\glew\doc\install.html" />
     <None Include="include\rapid\graphics\glew\doc\log.html" />
     <None Include="include\rapid\graphics\glew\doc\wglew.html" />
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,0 +1,67 @@
+#pragma once
+
+#include "../internal.h"
+
+namespace rapid
+{
+	std::vector<std::string> splitString(const std::string &string, const std::vector<std::string> delimiters = {" "})
+	{
+		std::vector<std::string> res;
+
+		uint64_t start = 0;
+		uint64_t end = 0;
+
+		while (end != std::string::npos)
+		{
+			// Find the nearest delimiter
+			uint64_t nearest = -1;
+			uint64_t index = 0;
+
+			for (uint64_t i = 0; i < delimiters.size(); i++)
+			{
+				auto pos = string.find(delimiters[i], start);
+				if (pos != std::string::npos && pos < nearest)
+				{
+					nearest = pos;
+					index = i;
+				}
+			}
+
+			if (nearest == (uint64_t) -1) // Nothing else was found
+				break;
+
+			end = nearest;
+			res.emplace_back(std::string(string.begin() + start, string.begin() + end));
+			res.emplace_back(delimiters[index]);
+			start = end + 1;
+		}
+
+		res.emplace_back(std::string(string.begin() + start, string.end()));
+
+		return res;
+	}
+
+	inline bool isalphanum(const std::string &string)
+	{
+		for (const auto &c : string)
+			if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')))
+				return false;
+		return true;
+	}
+
+	inline bool isalpha(const std::string &string)
+	{
+		for (const auto &c : string)
+			if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')))
+				return false;
+		return true;
+	}
+
+	inline bool isnum(const std::string &string)
+	{
+		for (const auto &c : string)
+			if (!(c >= '0' && c <= '9'))
+				return false;
+		return true;
+	}
+}

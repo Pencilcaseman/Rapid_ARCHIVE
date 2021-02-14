@@ -1,43 +1,85 @@
 #pragma once
 
 #include "../internal.h"
+#include "utils.h"
 
 namespace rapid
 {
-	std::vector<std::string> splitExpression(const std::string &expression, const std::vector<std::string> delimiters)
+	class Term
 	{
-		std::vector<std::string> res;
+	public:
 
-		uint64_t start = 0;
-		uint64_t end = 0;
+	};
 
-		while (end != std::string::npos)
+	class ExpressionSolver
+	{
+	public:
+		std::string expression;
+		std::vector<std::string> infix;
+		std::vector<std::string> postfix;
+
+		std::vector<std::string> splitBy = {" ", "(", ")", "+", "-", "*", "/", "^"};
+		std::vector<std::string> precedence = {"sin", "cos", "tan", "^", "/", "*", "+", "-"};
+		std::unordered_map<std::string, Term> variables;
+
+	public:
+
+		ExpressionSolver(const std::string &expr) : expression(expr)
+		{}
+
+		inline void expressionToInfix()
 		{
-			// Find the nearest delimiter
-			uint64_t nearest = -1;
-			uint64_t index = 0;
-
-			for (uint64_t i = 0; i < delimiters.size(); i++)
+			for (const auto &term : splitString(expression, splitBy))
 			{
-				auto pos = expression.find(delimiters[i], start);
-				if (pos != std::string::npos && pos < nearest)
+				if (term != " " && term != "")
+					infix.emplace_back(term);
+			}
+		}
+
+		inline void infixToPostfix()
+		{
+			std::stack<std::string> stack;
+
+			for (const auto &token : infix)
+			{
+				auto it = std::find(precedence.begin(), precedence.end(), token);
+
+				if (it == precedence.end())
 				{
-					nearest = pos;
-					index = i;
+					stack.push(token);
+				}
+				else
+				{
+					if (isalphanum(token))
+						postfix.emplace_back(token);
+					else if (token == "(" || token == "^")
+						stack.push(token);
+					else if (token == ")")
+					{
+						while (stack.size() > 0 && stack.top() != "(")
+						{
+							postfix.emplace_back(stack.top());
+							stack.pop();
+						}
+						stack.pop();
+					}
+					else
+					{
+						while (stack.size() > 0 && std::find(precedence.begin(), precedence.end(), token) >= std::find(precedence.begin(), precedence.end(), stack.top()))
+						{
+							postfix.emplace_back(stack.top());
+							stack.pop();
+						}
+						stack.push(token);
+					}
 				}
 			}
 
-			if (nearest == (uint64_t) -1) // Nothing else was found
-				break;
-
-			end = nearest;
-			res.emplace_back(std::string(expression.begin() + start, expression.begin() + end));
-			res.emplace_back(delimiters[index]);
-			start = end + 1;
+			while (stack.size() > 0)
+			{
+				postfix.emplace_back(stack.top());
+				stack.pop();
+			}
 		}
-
-		res.emplace_back(std::string(expression.begin() + start, expression.end()));
-
-		return res;
-	}
+	};
 }
