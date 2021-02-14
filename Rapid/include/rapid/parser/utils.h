@@ -43,9 +43,13 @@ namespace rapid
 
 	inline bool isalphanum(const std::string &string)
 	{
+		uint64_t i = 0;
 		for (const auto &c : string)
-			if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')))
+		{
+			if (!((i == 0 && (c == '-' || c == '+') && string.length() > 1) || (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c == '.')))
 				return false;
+			i++;
+		}
 		return true;
 	}
 
@@ -59,9 +63,13 @@ namespace rapid
 
 	inline bool isnum(const std::string &string)
 	{
+		uint64_t i = 0;
 		for (const auto &c : string)
-			if (!(c >= '0' && c <= '9'))
+		{
+			if (!((i == 0 && (c == '-' || c == '+') && string.length() > 1) || (c >= '0' && c <= '9') || (c == '.')))
 				return false;
+			i++;
+		}
 		return true;
 	}
 }

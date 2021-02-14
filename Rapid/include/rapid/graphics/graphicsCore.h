@@ -261,6 +261,15 @@ namespace rapid
 
 			rapidValidate(glewInit() == GLEW_OK, "Unable to initialize glew");
 
+			if (!setup())
+			{
+				windowShouldClose = true;
+			}
+			else
+			{
+				windowShouldClose = false;
+			}
+
 			aspectRatio = double(width) / double(height);
 			timeStart = TIME;
 			prevFrameTime = timeStart;
@@ -270,8 +279,6 @@ namespace rapid
 			glfwSetKeyCallback(window, keyPressCallback);
 
 			graphicsInstances.push_back(this);
-
-			windowShouldClose = false;
 
 			rapidGraphicsWindowsExposed++;
 
