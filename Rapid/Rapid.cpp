@@ -6,102 +6,34 @@
 #include <iostream>
 #include "include/rapid/rapid.h"
 
-class Window : public rapid::RapidGraphics
-{
-public:
-	rapid::ExpressionSolver solver;
-
-	Window()
-	{
-		std::string text("(3*x^5+7*x^4+2*x^3-3*x^2-3*x-1)/2");
-		solver = rapid::ExpressionSolver(text);
-		solver.compile();
-
-		create(500, 500, "Graphs for Dayz");
-	}
-
-	bool setup() override
-	{
-		limitFrameRate = false;
-		transparent(0.4);
-
-		return true;
-	}
-
-	bool draw() override
-	{
-		background(0);
-
-		strokeWeight(1.5);
-		stroke(100);
-
-		line((double) width / 2, 0, (double) width / 2, height);
-		line(0, (double) height / 2, width, (double) height / 2);
-
-		strokeWeight(5);
-		stroke(255, 0, 255);
-
-		for (double x = 0; x < width; x += 0.1)
-		{
-			solver.variables["x"] = rapid::map(x, 0, width, -2, 2);
-			solver.variables["y"] = sin((double) frameCount / 500);
-			auto y = solver.eval();
-		
-			point(x, rapid::map(y, -2, 2, height, 0));
-		}
-
-		std::cout << frameRate() << "\n";
-
-		return true;
-	}
-};
-
 int main()
 {
-	Window window;
-	window.start();
+	auto arr = rapid::Array<double>({2, 2, 2});
+	arr.fill(3.14);
 
-	std::cout << std::fixed;
+	auto arr2 = rapid::Array<double>({2});
+	arr2.fill(123);
 
-	auto start = TIME;
-	std::string text("(3*x^5+7*x^4+2*x^3-3*x^2-3*x-1)/2");
-	rapid::ExpressionSolver solver(text);
+	arr[0][0] = arr2;
 
-	solver.registerFunction("sin", [](double a)
-	{
-		return sin(a);
-	});
+	arr[0][0][0] = 69;
 
-	solver.expressionToInfix();
-	solver.infixToPostfix();
-	solver.postfixProcess();
-	auto end = TIME;
+	std::cout << arr.toString() << "\n\n";
+	std::cout << arr[0].toString() << "\n\n";
+	std::cout << arr2.toString() << "\n\n";
 
-	std::cout << "Calculated in " << end - start << " seconds\n";
-	
-	for (const auto &token : solver.infix)
-		std::cout << token << " ";
-	std::cout << "\n";
-	
-	for (const auto &token : solver.postfix)
-		std::cout << token << " ";
-	std::cout << "\n";
+	START_TIMER(0, 100000);
 
-	for (const auto &token : solver.processed)
-		if (token.second.length() == 0)
-			std::cout << token.first << " ";
-		else
-			std::cout << token.second << " ";
-	std::cout << "\n";
+	auto testArr = rapid::Array<double>({1000, 10000});
+	// testArr.fill(3.14);
 
-	solver.variables["x"] = -1;
+	auto testArr2 = rapid::Array<double>({10000});
+	// testArr2.fill(123);
 
-	start = TIME;
-	auto res = solver.postfixEval();
-	end = TIME;
+	testArr[0] = testArr2;
+	testArr[0][0] = 69;
 
-	std::cout << "Result: " << solver.postfixEval() << "\n";
-	std::cout << "Calcualated in " << end - start << " seconds\n";
+	END_TIMER(0);
 
 	return 0;
 }

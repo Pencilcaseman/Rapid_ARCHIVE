@@ -364,26 +364,26 @@ namespace rapid
 			(*originCount)++;
 		}
 
-		/// <summary>
-		/// Make one array equal to another. This will create an array
-		/// using exactly the same data as the provided array, meaning
-		/// a modification in one will result in a change in the other.
-		/// </summary>
-		/// <param name="other"></param>
-		/// <returns></returns>
-		Array<arrayType> operator=(const Array<arrayType> &other)
-		{
-			isZeroDim = other.isZeroDim;
-			shape = other.shape;
-			dataStart = other.dataStart;
-			dataOrigin = other.dataOrigin;
-			originCount = other.originCount;
-
-			if (this != &other)
-				(*originCount)++;
-
-			return *this;
-		}
+		// /// <summary>
+		// /// Make one array equal to another. This will create an array
+		// /// using exactly the same data as the provided array, meaning
+		// /// a modification in one will result in a change in the other.
+		// /// </summary>
+		// /// <param name="other"></param>
+		// /// <returns></returns>
+		// Array<arrayType> operator=(const Array<arrayType> &other)
+		// {
+		// 	isZeroDim = other.isZeroDim;
+		// 	shape = other.shape;
+		// 	dataStart = other.dataStart;
+		// 	dataOrigin = other.dataOrigin;
+		// 	originCount = other.originCount;
+		// 
+		// 	if (this != &other)
+		// 		(*originCount)++;
+		// 
+		// 	return *this;
+		// }
 
 		/// <summary>
 		/// Set a zero-dimensional array object to a scalar value.
@@ -393,10 +393,34 @@ namespace rapid
 		/// <param name="other"></param>
 		/// <returns></returns>
 		template<typename t>
-		Array<arrayType> operator=(const t &other)
+		Array<arrayType> &operator=(const t &other)
 		{
 			rapidAssert(isZeroDim, "Cannot set a multidimensional array to a scalar value");
 			dataStart[0] = (arrayType) other;
+			return *this;
+		}
+
+		Array<arrayType> &operator=(Array<arrayType> &other)
+		{
+			rapidAssert(shape == other.shape, "Invalid shape for array setting");
+
+			memcpy(dataStart, other.dataStart, prod(shape) * sizeof(arrayType));
+
+			// Only delete data if originCount becomes zero
+			(*(other.originCount))--;
+
+			if ((*(other.originCount)) == 0)
+			{
+				delete[] other.dataOrigin;
+				delete other.originCount;
+			}
+
+			other.dataOrigin = dataOrigin;
+			other.dataStart = dataStart;
+			other.originCount = originCount;
+
+			(*originCount)++;
+
 			return *this;
 		}
 
@@ -489,6 +513,13 @@ namespace rapid
 			return dataStart[utils::ndToScalar(index, shape)];
 		}
 
+		/// <summary>
+		/// Set a scalar value in an array from a given
+		/// index location
+		/// </summary>
+		/// <typeparam name="t"></typeparam>
+		/// <param name="index"></param>
+		/// <param name="val"></param>
 		template<typename t>
 		inline void setVal(const std::initializer_list<t> &index, const arrayType &val) const
 		{
@@ -504,6 +535,11 @@ namespace rapid
 			dataStart[utils::ndToScalar(index, shape)] = val;
 		}
 
+		/// <summary>
+		/// Array add Array
+		/// </summary>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		inline Array<arrayType> operator+(const Array<arrayType> &other)const
 		{
 			rapidAssert(shape == other.shape, "Shapes must be equal to perform array addition");
@@ -515,6 +551,11 @@ namespace rapid
 			return res;
 		}
 
+		/// <summary>
+		/// Array sub Array
+		/// </summary>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		inline Array<arrayType> operator-(const Array<arrayType> &other)const
 		{
 			rapidAssert(shape == other.shape, "Shapes must be equal to perform array addition");
@@ -526,6 +567,11 @@ namespace rapid
 			return res;
 		}
 
+		/// <summary>
+		/// Array mul Array
+		/// </summary>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		inline Array<arrayType> operator*(const Array<arrayType> &other)const
 		{
 			rapidAssert(shape == other.shape, "Shapes must be equal to perform array addition");
@@ -537,6 +583,11 @@ namespace rapid
 			return res;
 		}
 
+		/// <summary>
+		/// Array div Array
+		/// </summary>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		inline Array<arrayType> operator/(const Array<arrayType> &other)const
 		{
 			rapidAssert(shape == other.shape, "Shapes must be equal to perform array addition");
@@ -548,6 +599,12 @@ namespace rapid
 			return res;
 		}
 
+		/// <summary>
+		/// Array add Scalar
+		/// </summary>
+		/// <typeparam name="t"></typeparam>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		template<typename t>
 		inline Array<arrayType> operator+(const t &other)const
 		{
@@ -559,6 +616,12 @@ namespace rapid
 			return res;
 		}
 
+		/// <summary>
+		/// Array sub Scalar
+		/// </summary>
+		/// <typeparam name="t"></typeparam>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		template<typename t>
 		inline Array<arrayType> operator-(const t &other)const
 		{
@@ -570,6 +633,12 @@ namespace rapid
 			return res;
 		}
 
+		/// <summary>
+		/// Array mul Scalar
+		/// </summary>
+		/// <typeparam name="t"></typeparam>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		template<typename t>
 		inline Array<arrayType> operator*(const t &other)const
 		{
@@ -581,6 +650,12 @@ namespace rapid
 			return res;
 		}
 
+		/// <summary>
+		/// Array div Scalar
+		/// </summary>
+		/// <typeparam name="t"></typeparam>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		template<typename t>
 		inline Array<arrayType> operator/(const t &other)const
 		{
@@ -631,6 +706,13 @@ namespace rapid
 		std::string toString() const;
 	};
 
+	/// <summary>
+	/// Reverse multiplication
+	/// </summary>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="val"></param>
+	/// <param name="other"></param>
+	/// <returns></returns>
 	template<typename t>
 	static inline Array<t> operator*(t val, const Array<t> &other)
 	{
@@ -642,6 +724,12 @@ namespace rapid
 		return res;
 	}
 
+	/// <summary>
+	/// Sum all of the elements of an array
+	/// </summary>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="arr"></param>
+	/// <returns></returns>
 	template<typename t>
 	inline t sum(const Array<t> &arr)
 	{
@@ -653,6 +741,13 @@ namespace rapid
 		return res;
 	}
 	
+	/// <summary>
+	/// Calculate the exponent of every value
+	/// in an array, and return the result
+	/// </summary>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="arr"></param>
+	/// <returns></returns>
 	template<typename t>
 	inline Array<t> exp(const Array<t> &arr)
 	{
@@ -672,6 +767,13 @@ namespace rapid
 		return result;
 	}
 
+	/// <summary>
+	/// Square every element in an array and return
+	/// the result
+	/// </summary>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="arr"></param>
+	/// <returns></returns>
 	template<typename t>
 	inline Array<t> square(const Array<t> &arr)
 	{
@@ -691,6 +793,13 @@ namespace rapid
 		return result;
 	}
 
+	/// <summary>
+	/// Square root every element in an array
+	/// and return the result
+	/// </summary>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="arr"></param>
+	/// <returns></returns>
 	template<typename t>
 	inline Array<t> sqrt(const Array<t> &arr)
 	{
@@ -710,6 +819,13 @@ namespace rapid
 		return result;
 	}
 
+	/// <summary>
+	/// Raise an array to a power
+	/// </summary>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="arr"></param>
+	/// <param name="power"></param>
+	/// <returns></returns>
 	template<typename t>
 	inline Array<t> pow(const Array<t> &arr, t power)
 	{
@@ -729,6 +845,16 @@ namespace rapid
 		return result;
 	}
 	
+	/// <summary>
+	/// Create a vector of a given length where the first element
+	/// is "start" and the final element is "end", increasing in
+	/// regular increments
+	/// </summary>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="start"></param>
+	/// <param name="end"></param>
+	/// <param name="len"></param>
+	/// <returns></returns>
 	template<typename t>
 	inline Array<t> linspace(t start, t end, size_t len)
 	{
@@ -750,6 +876,15 @@ namespace rapid
 		return result;
 	}
 
+	/// <summary>
+	/// Create a 3D array from two vectors, where the first element
+	/// is vector A in row format, and the second element is vector
+	/// B in column format.
+	/// </summary>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="a"></param>
+	/// <param name="b"></param>
+	/// <returns></returns>
 	template<typename t>
 	inline Array<t> meshgrid(const Array<t> &a, const Array<t> &b)
 	{
@@ -782,6 +917,15 @@ namespace rapid
 		return result;
 	}
 
+	/// <summary>
+	/// Return a gaussian matrix with the given rows, columns and
+	/// standard deviation.
+	/// </summary>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="r"></param>
+	/// <param name="c"></param>
+	/// <param name="sigma"></param>
+	/// <returns></returns>
 	template<typename t>
 	inline Array<t> gaussian(size_t r, size_t c, t sigma)
 	{
@@ -800,7 +944,7 @@ namespace rapid
 
 	/// <summary>
 	/// Cast an array from one type to another. This makes a copy of the array,
-	/// and therefore altering a value in one will not cuase an update in the
+	/// and therefore altering a value in one will not cause an update in the
 	/// other.
 	/// </summary>
 	/// <typeparam name="res"></typeparam>

@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <regex>
 #include <stack>
+#include <unordered_map>
 
 #include <conio.h>
 #include <sys/stat.h>
@@ -194,10 +195,8 @@ double seconds()
 		QueryPerformanceCounter(&t);
 		return (double) t.QuadPart * oofreq;
 	}
-	else
-	{
-		return (double) GetTickCount64() * 1.0e-3;
-	}
+
+	return (double) GetTickCount64() * 1.0e-3;
 }
 
 #define TIME (seconds())
@@ -206,23 +205,63 @@ double seconds()
 #define TIME (omp_get_wtime())
 #endif
 
+// Looping for timing things
+
+#define _loop_var rapidTimerLoopIterations
+#define _loop_end rapidTimerLoopEnd
+#define _loop_timer rapidTimerLoopTimer
+#define _loop_goto rapidTimerLoopGoto
+#define START_TIMER(id, n) uint64_t _loop_var##id = 0;				   \
+						  uint64_t _loop_end##id = n;				   \
+						  auto _loop_timer##id = rapid::RapidTimer(n); \
+					      _loop_goto##id:
+
+#define END_TIMER(id)	_loop_var##id++;				   \
+						if (_loop_var##id < _loop_end##id) \
+							goto _loop_goto##id;			  \
+						_loop_timer##id.endTimer()
+
 namespace rapid
 {
 	class RapidTimer
 	{
 	public:
 		std::chrono::time_point<std::chrono::steady_clock> start, end;
+		uint64_t loops;
+		bool finished = false;
 
 		RapidTimer()
 		{
-			start = std::chrono::high_resolution_clock::now();
+			startTimer();
+			loops = 1;
+		}
+
+		RapidTimer(uint64_t iters)
+		{
+			startTimer();
+			loops = iters;
 		}
 
 		~RapidTimer()
 		{
+			endTimer();
+		}
+
+		inline void startTimer()
+		{
+			start = std::chrono::high_resolution_clock::now();
+		}
+
+		inline void endTimer()
+		{
 			end = std::chrono::high_resolution_clock::now();
 
-			auto delta = (double) std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+			if (finished)
+				return;
+
+			finished = true;
+
+			auto delta = (double) std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / (double) loops;
 			std::string unit = "ns";
 
 			if (delta >= 1000)
