@@ -24,10 +24,10 @@ int main()
 
 	START_TIMER(0, 100000);
 
-	auto testArr = rapid::Array<double>({1000, 10000});
+	auto testArr = rapid::Array<double>({1000, 1000});
 	// testArr.fill(3.14);
 
-	auto testArr2 = rapid::Array<double>({10000});
+	auto testArr2 = rapid::Array<double>({1000});
 	// testArr2.fill(123);
 
 	testArr[0] = testArr2;

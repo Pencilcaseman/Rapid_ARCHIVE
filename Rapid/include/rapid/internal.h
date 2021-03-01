@@ -211,14 +211,10 @@ double seconds()
 #define _loop_end rapidTimerLoopEnd
 #define _loop_timer rapidTimerLoopTimer
 #define _loop_goto rapidTimerLoopGoto
-#define START_TIMER(id, n) uint64_t _loop_var##id = 0;				   \
-						  uint64_t _loop_end##id = n;				   \
-						  auto _loop_timer##id = rapid::RapidTimer(n); \
-					      _loop_goto##id:
+#define START_TIMER(id, n) auto _loop_timer##id = rapid::RapidTimer(n);								\
+						   for (uint64_t _loop_var##id = 0; _loop_var##id < n; _loop_var##id++) {	\
 
-#define END_TIMER(id)	_loop_var##id++;				   \
-						if (_loop_var##id < _loop_end##id) \
-							goto _loop_goto##id;			  \
+#define END_TIMER(id)	} \
 						_loop_timer##id.endTimer()
 
 namespace rapid
