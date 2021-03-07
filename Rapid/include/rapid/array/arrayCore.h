@@ -3,6 +3,10 @@
 #include "../internal.h"
 #include "../math.h"
 
+#ifndef RAPID_NO_BLAS
+#include "cblasAPI.h"
+#endif
+
 namespace rapid
 {
 	namespace utils
@@ -364,63 +368,27 @@ namespace rapid
 			(*originCount)++;
 		}
 
-		// /// <summary>
-		// /// Make one array equal to another. This will create an array
-		// /// using exactly the same data as the provided array, meaning
-		// /// a modification in one will result in a change in the other.
-		// /// </summary>
-		// /// <param name="other"></param>
-		// /// <returns></returns>
-		// Array<arrayType> operator=(const Array<arrayType> &other)
+		// Array(const arrayType &val)
 		// {
-		// 	isZeroDim = other.isZeroDim;
-		// 	shape = other.shape;
-		// 	dataStart = other.dataStart;
-		// 	dataOrigin = other.dataOrigin;
-		// 	originCount = other.originCount;
-		// 
-		// 	if (this != &other)
-		// 		(*originCount)++;
-		// 
-		// 	return *this;
+		// 	isZeroDim = true;
+		// 	shape = {1};
+		// 	dataStart = new arrayType[1];
+		// 	dataOrigin = dataStart;
+		// 	dataStart[0] = val;
+		// 	originCount = new size_t;
+		// 	*originCount = 1;
 		// }
 
-		/// <summary>
-		/// Set a zero-dimensional array object to a scalar value.
-		/// This should be used for array setter functions.
-		/// </summary>
-		/// <typeparam name="t"></typeparam>
-		/// <param name="other"></param>
-		/// <returns></returns>
-		template<typename t>
-		Array<arrayType> &operator=(const t &other)
+		Array<arrayType> &operator=(const Array<arrayType> &other)
 		{
-			rapidAssert(isZeroDim, "Cannot set a multidimensional array to a scalar value");
-			dataStart[0] = (arrayType) other;
+			rapidAssert(shape == other.shape, "Invalid shape for array setting");
+			memcpy(dataStart, other.dataStart, prod(shape) * sizeof(arrayType));
 			return *this;
 		}
 
-		Array<arrayType> &operator=(Array<arrayType> &other)
+		Array<arrayType> &operator=(const arrayType &other)
 		{
-			rapidAssert(shape == other.shape, "Invalid shape for array setting");
-
-			memcpy(dataStart, other.dataStart, prod(shape) * sizeof(arrayType));
-
-			// Only delete data if originCount becomes zero
-			(*(other.originCount))--;
-
-			if ((*(other.originCount)) == 0)
-			{
-				delete[] other.dataOrigin;
-				delete other.originCount;
-			}
-
-			other.dataOrigin = dataOrigin;
-			other.dataStart = dataStart;
-			other.originCount = originCount;
-
-			(*originCount)++;
-
+			fill(other);
 			return *this;
 		}
 
@@ -446,6 +414,13 @@ namespace rapid
 			return res;
 		}
 
+		template<typename t>
+		static inline Array<arrayType> fromData(const std::initializer_list<t> &data)
+		{
+			// Find dimensions of data
+
+		}
+
 		~Array()
 		{
 			// Only delete data if originCount becomes zero
@@ -465,7 +440,8 @@ namespace rapid
 		template<typename t>
 		inline operator t() const
 		{
-			if (std::is_integral<t>::value || std::is_floating_point<t>::value)
+			// if (std::is_integral<t>::value || std::is_floating_point<t>::value)
+			if (!isZeroDim)
 				rapidAssert(isZeroDim, "Cannot cast multidimensional array to scalar value");
 			return (t) (dataStart[0]);
 		}
@@ -679,6 +655,258 @@ namespace rapid
 			});
 		}
 
+		inline Array<arrayType> dot(const Array<arrayType> &other) const
+		{
+			rapidAssert(shape.size() == other.shape.size(), "Invalid number of dimensions for array dot product");
+			uint64_t dims = shape.size();
+
+		#ifndef RAPID_NO_BLAS
+			switch (dims)
+			{
+				case 1:
+				{
+					rapidAssert(shape[0] == other.shape[0], "Invalid shape for array product");
+					rapidAssert(isZeroDim == other.isZeroDim, "Invalid value for array product");
+
+					Array<arrayType> res(shape);
+					res.isZeroDim = true;
+					res.dataStart[0] = imp::rapid_dot(shape[0], dataStart, other.dataStart);
+
+					return res;
+				}
+				case 2:
+				{
+					rapidAssert(shape[1] == other.shape[0], "Columns of A must match rows of B for dot product");
+
+					Array<arrayType> res({shape[0], other.shape[1]});
+
+					const size_t M = shape[0];
+					const size_t N = shape[1];
+					const size_t K = other.shape[1];
+
+					const arrayType *__restrict a = dataStart;
+					const arrayType *__restrict b = other.dataStart;
+					arrayType *__restrict c = res.dataStart;
+
+					imp::rapid_gemm(M, N, K, a, b, c);
+
+					return res;
+				}
+				default:
+				{
+					std::vector<uint64_t> resShape = shape;
+					resShape[resShape.size() - 2] = shape[shape.size() - 2];
+					resShape[resShape.size() - 1] = other.shape[other.shape.size() - 1];
+					Array<arrayType> res(resShape);
+
+					for (uint64_t i = 0; i < shape[0]; i++)
+					{
+						res[i] = (operator[](i).dot(other[i]));
+					}
+
+					return res;
+				}
+			}
+		#else
+			switch (dims)
+			{
+				case 1:
+				{
+					rapidAssert(shape[0] == other.shape[0], "Invalid shape for array product");
+					rapidAssert(isZeroDim == other.isZeroDim, "Invalid value for array product");
+
+					Array<arrayType> res({1});
+					res.isZeroDim = true;
+					res.dataStart[0] = 0;
+
+					for (uint64_t i = 0; i < shape[0]; i++)
+						res.dataStart[0] += dataStart[i] * other.dataStart[i];
+
+					return res;
+				}
+				case 2:
+				{
+					rapidAssert(shape[1] == other.shape[0], "Columns of A must match rows of B for dot product");
+					uint64_t mode;
+					uint64_t size = shape[0] * shape[1] * other.shape[1];
+
+					if (size < 8000) mode = 0;
+					else if (size < 64000000) mode = 1;
+				#ifndef RAPID_NO_AMP
+					else mode = 2;
+				#else
+					else mode = 1;
+				#endif
+
+					Array<arrayType> res({shape[0], other.shape[1]});
+
+					if (mode == 0)
+					{
+						// Serial
+
+						size_t M = shape[0];
+						size_t N = shape[1];
+						size_t K = other.shape[1];
+
+						const arrayType *__restrict a = dataStart;
+						const arrayType *__restrict b = other.dataStart;
+						arrayType *__restrict c = res.dataStart;
+
+						size_t i, j, k;
+						arrayType tmp;
+
+						for (i = 0; i < M; ++i)
+						{
+							for (j = 0; j < K; ++j)
+							{
+								tmp = 0;
+
+								for (k = 0; k < N; ++k)
+									tmp += a[k + i * N] * b[j + k * K];
+
+								c[j + i * K] = tmp;
+							}
+						}
+					}
+					else if (mode == 1)
+					{
+						// Parallel
+
+						auto M = (long long) shape[0];
+						auto N = (long long) shape[1];
+						auto K = (long long) other.shape[1];
+
+						const arrayType *__restrict a = dataStart;
+						const arrayType *__restrict b = other.dataStart;
+						arrayType *__restrict c = res.dataStart;
+
+						long long i, j, k;
+						arrayType tmp;
+
+					#pragma omp parallel for shared(M, N, K, a, b, c) private(i, j, k, tmp) default(none) num_threads(16)
+						for (i = 0; i < M; ++i)
+						{
+							for (j = 0; j < K; ++j)
+							{
+								tmp = 0;
+
+								for (k = 0; k < N; ++k)
+									tmp += a[k + i * N] * b[j + k * K];
+
+								c[j + i * K] = tmp;
+							}
+						}
+					}
+				#ifndef RAPID_NO_AMP
+					else if (mode == 2)
+					{
+						// Massive parallel
+
+						// Tile size
+						static const int TS = 32;
+
+						const auto resizedThis = resized({rapid::roundUp(shape[0], (size_t) TS), rapid::roundUp(shape[1], (size_t) TS)});
+						const auto resizedOther = resized({rapid::roundUp(other.shape[0], (size_t) TS), rapid::roundUp(other.shape[1], (size_t) TS)});
+						res.resize({rapid::roundUp(shape[0], (size_t) TS), rapid::roundUp(other.shape[1], (size_t) TS)});
+
+						auto M = (unsigned int) resizedThis.shape[0];
+						auto N = (unsigned int) resizedThis.shape[1];
+						auto K = (unsigned int) res.shape[1];
+
+						array_view<const arrayType, 2> a(M, N, resizedThis.dataStart);
+						array_view<const arrayType, 2> b(N, K, resizedOther.dataStart);
+						array_view<arrayType, 2> product(M, K, res.dataStart);
+
+						parallel_for_each(product.extent.tile<TS, TS>(), [=](tiled_index<TS, TS> t_idx) restrict(amp)
+						{
+							// Get the location of the thread relative to the tile (row, col)
+							// and the entire array_view (rowGlobal, colGlobal).
+							const int row = t_idx.local[0];
+							const int col = t_idx.local[1];
+							const int rowGlobal = t_idx.global[0];
+							const int colGlobal = t_idx.global[1];
+							arrayType sum = 0;
+
+							for (int i = 0; i < M; i += TS)
+							{
+								tile_static arrayType locA[TS][TS];
+								tile_static arrayType locB[TS][TS];
+								locA[row][col] = a(rowGlobal, col + i);
+								locB[row][col] = b(row + i, colGlobal);
+
+								t_idx.barrier.wait();
+
+								for (int k = 0; k < TS; k++)
+									sum += locA[row][k] * locB[k][col];
+
+								t_idx.barrier.wait();
+							}
+
+							product[t_idx.global] = sum;
+						});
+
+						product.synchronize();
+
+						res.resize({shape[0], other.shape[1]});
+					}
+				#endif
+
+					return res;
+				}
+				default:
+				{
+					std::vector<uint64_t> resShape = shape;
+					resShape[resShape.size() - 2] = shape[shape.size() - 2];
+					resShape[resShape.size() - 1] = other.shape[other.shape.size() - 1];
+					Array<arrayType> res(resShape);
+
+					for (uint64_t i = 0; i < shape[0]; i++)
+					{
+						res[i] = (operator[](i).dot(other[i]));
+					}
+
+					return res;
+				}
+			}
+		#endif
+		}
+
+		inline Array<arrayType> resized(const std::vector<uint64_t> &newShape) const
+		{
+			rapidAssert(newShape.size() == 2, "Resizing currently only supports 2D array");
+
+			Array<arrayType> res(newShape);
+			auto resData = res.dataStart;
+			auto thisData = dataStart;
+
+			for (size_t i = 0; i < rapid::rapidMin(shape[0], newShape[0]); i++)
+				memcpy(resData + i * newShape[1], thisData + i * shape[1], sizeof(arrayType) * rapid::rapidMin(shape[1], newShape[1]));
+
+			return res;
+		}
+
+		inline void resize(const std::vector<uint64_t> &newShape)
+		{
+			auto newThis = resized(newShape);
+
+			// Only delete data if originCount becomes zero
+			(*originCount)--;
+
+			if ((*originCount) == 0)
+			{
+				delete[] dataOrigin;
+				delete originCount;
+			}
+
+			originCount = newThis.originCount;
+			(*originCount)++;
+
+			dataOrigin = newThis.dataOrigin;
+			dataStart = newThis.dataStart;
+
+			shape = newShape;
+		}
+
 		/// <summary>
 		/// Create an exact copy of an array. The resulting array
 		/// is not linked to the parent in any way, so an 
@@ -740,7 +968,7 @@ namespace rapid
 
 		return res;
 	}
-	
+
 	/// <summary>
 	/// Calculate the exponent of every value
 	/// in an array, and return the result
@@ -844,7 +1072,7 @@ namespace rapid
 
 		return result;
 	}
-	
+
 	/// <summary>
 	/// Create a vector of a given length where the first element
 	/// is "start" and the final element is "end", increasing in
@@ -903,12 +1131,12 @@ namespace rapid
 		}
 		else
 		{
-			#pragma omp parallel for
+		#pragma omp parallel for
 			for (int64_t i = 0; i < b.shape[0]; i++)
 				for (int64_t j = 0; j < a.shape[0]; j++)
 					result.setVal<int64_t>({(int64_t) 0, i, j}, a.accessVal<int64_t>({j}));
 
-			#pragma omp parallel for
+		#pragma omp parallel for
 			for (int64_t i = 0; i < b.shape[0]; i++)
 				for (int64_t j = 0; j < a.shape[0]; j++)
 					result.setVal<int64_t>({(int64_t) 1, i, j}, b.accessVal<int64_t>({i}));

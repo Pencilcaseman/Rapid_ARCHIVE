@@ -161,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\rapid\array.h" />
+    <ClInclude Include="include\rapid\array\cblasAPI.h" />
     <ClInclude Include="include\rapid\array\prettyPrint.h" />
     <ClInclude Include="include\rapid\graphics.h" />
     <ClInclude Include="include\rapid\graphics\CImg\CImg.h" />
@@ -263,7 +264,6 @@
     <None Include="include\rapid\graphics\glew\doc\install.html" />
     <None Include="include\rapid\graphics\glew\doc\log.html" />
     <None Include="include\rapid\graphics\glew\doc\wglew.html" />
-    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

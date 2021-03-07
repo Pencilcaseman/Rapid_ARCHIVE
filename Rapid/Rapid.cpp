@@ -1,5 +1,5 @@
-// #define RAPID_NO_BLAS
-// #define RAPID_NO_AMP
+#define RAPID_NO_BLAS
+//#define RAPID_NO_AMP
 // #define RAPID_NO_GRAPHICS
 // #define RAPID_CHECK_NAN
 
@@ -8,32 +8,20 @@
 
 int main()
 {
-	auto arr = rapid::Array<double>({2, 2, 2});
-	arr.fill(3.14);
+	auto e = rapid::Array<double>({10000, 10000});
+	auto f = rapid::Array<double>({10000, 10000});
+	e.fill(1);
+	f.fill(1);
 
-	auto arr2 = rapid::Array<double>({2});
-	arr2.fill(123);
+	// std::cout << e.toString() << "\n\n";
+	// std::cout << f.toString() << "\n\n";
 
-	arr[0][0] = arr2;
-
-	arr[0][0][0] = 69;
-
-	std::cout << arr.toString() << "\n\n";
-	std::cout << arr[0].toString() << "\n\n";
-	std::cout << arr2.toString() << "\n\n";
-
-	START_TIMER(0, 100000);
-
-	auto testArr = rapid::Array<double>({1000, 1000});
-	// testArr.fill(3.14);
-
-	auto testArr2 = rapid::Array<double>({1000});
-	// testArr2.fill(123);
-
-	testArr[0] = testArr2;
-	testArr[0][0] = 69;
-
+	START_TIMER(0, 100);
+	auto res = e.dot(f);
 	END_TIMER(0);
+	
+	// std::cout << e.toString() << "\n";
+	// std::cout << e.dot(f).toString() << "\n";
 
 	return 0;
 }
