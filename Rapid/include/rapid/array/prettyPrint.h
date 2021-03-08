@@ -62,6 +62,7 @@ namespace rapid
 					if (i != 0)
 						res += std::string(depth, ' ');
 
+
 					auto begin = adjusted.begin() + i;
 					auto end = adjusted.begin() + i + shape[1];
 					std::vector<std::string> substr(begin, end);
@@ -112,6 +113,27 @@ namespace rapid
 				return res + "]";
 			}
 		}
+
+		inline bool incArr(std::vector<uint64_t> &arr, const std::vector<uint64_t> &m)
+		{
+			arr[arr.size() - 1]++;
+			uint64_t lastChanged = 0;
+
+			for (uint64_t i = 0; i < arr.size(); i++)
+			{
+				if (arr[arr.size() - i - 1] >= m[m.size() - i - 1])
+				{
+					if (arr.size() - i == 1)
+						return false;
+
+					arr[arr.size() - i - 2]++;
+					arr[arr.size() - i - 1] = 0;
+					lastChanged = i;
+				}
+			}
+
+			return true;
+		}
 	}
 
 	/// <summary>
@@ -119,6 +141,61 @@ namespace rapid
 	/// </summary>
 	/// <typeparam name="t"></typeparam>
 	/// <returns></returns>
+// 	template<typename t>
+// 	std::string Array<t>::toString() const
+// 	{
+// 		if (isZeroDim)
+// 			return std::to_string(dataStart[0]);
+// 
+// 		size_t allocate = 1;
+// 
+// 		std::vector<utils::strContainer> formatted(prod(shape));
+// 		size_t longestIntegral = 0;
+// 		size_t longestDecimal = 0;
+// 
+// 		{
+// 			auto timer = rapid::RapidTimer();
+// 
+// 			for (size_t i = 0; i < prod(shape); i++)
+// 			{
+// 				formatted[i] = utils::formatNumerical(dataStart[i]);
+// 
+// 				if (formatted[i].decimalPoint > longestIntegral)
+// 					longestIntegral = formatted[i].decimalPoint;
+// 
+// 				if (formatted[i].str.length() >= formatted[i].decimalPoint && formatted[i].str.length() - formatted[i].decimalPoint > longestDecimal)
+// 					longestDecimal = formatted[i].str.length() - formatted[i].decimalPoint;
+// 			}
+// 		}
+// 
+// 		std::vector<std::string> adjusted(formatted.size());
+// 
+// 		for (size_t i = 0; i < formatted.size(); i++)
+// 		{
+// 			const auto &term = formatted[i];
+// 			auto decimal = term.str.length() - term.decimalPoint - 1;
+// 
+// 			size_t bufferLeft = 0;
+// 
+// 			auto tmp = std::string(longestIntegral - term.decimalPoint, ' ') + term.str + std::string(longestDecimal - decimal, ' ');
+// 			adjusted[i] = tmp;
+// 		}
+// 
+// 		// General checks
+// 		bool stripMiddle = false;
+// 		if (prod(shape) > 1000)
+// 			stripMiddle = true;
+// 
+// 		// Edge case
+// 		if (shape.size() == 2 && shape[1] == 1)
+// 			stripMiddle = false;
+// 
+// 		auto res = utils::toString(adjusted, shape, 1, stripMiddle);
+// 
+// 		return res;
+// 	}
+
+
 	template<typename t>
 	std::string Array<t>::toString() const
 	{
@@ -127,33 +204,9 @@ namespace rapid
 
 		size_t allocate = 1;
 
-		std::vector<utils::strContainer> formatted(prod(shape));
+		std::vector<utils::strContainer> formatted(prod(shape), {"", 0});
 		size_t longestIntegral = 0;
 		size_t longestDecimal = 0;
-
-		for (size_t i = 0; i < prod(shape); i++)
-		{
-			formatted[i] = utils::formatNumerical(dataStart[i]);
-
-			if (formatted[i].decimalPoint > longestIntegral)
-				longestIntegral = formatted[i].decimalPoint;
-
-			if (formatted[i].str.length() >= formatted[i].decimalPoint && formatted[i].str.length() - formatted[i].decimalPoint > longestDecimal)
-				longestDecimal = formatted[i].str.length() - formatted[i].decimalPoint;
-		}
-
-		std::vector<std::string> adjusted(formatted.size());
-
-		for (size_t i = 0; i < formatted.size(); i++)
-		{
-			const auto &term = formatted[i];
-			auto decimal = term.str.length() - term.decimalPoint - 1;
-
-			size_t bufferLeft = 0;
-
-			auto tmp = std::string(longestIntegral - term.decimalPoint, ' ') + term.str + std::string(longestDecimal - decimal, ' ');
-			adjusted[i] = tmp;
-		}
 
 		// General checks
 		bool stripMiddle = false;
@@ -164,8 +217,53 @@ namespace rapid
 		if (shape.size() == 2 && shape[1] == 1)
 			stripMiddle = false;
 
+		std::vector<uint64_t> currentIndex(shape.size(), 0);
+		currentIndex[currentIndex.size() - 1] = -1;
+
+		while (utils::incArr(currentIndex, shape))
+		{
+			uint64_t index = utils::ndToScalar(currentIndex, shape);
+			bool skip = false;
+			for (int i = 0; i < currentIndex.size(); i++)
+			{
+				if (stripMiddle && (currentIndex[i] > 3 && currentIndex[i] < shape[i] - 3))
+				{
+					skip = true;
+					break;
+				}
+			}
+
+			if (!skip)
+			{
+				formatted[index] = utils::formatNumerical(dataStart[index]);
+
+				if (formatted[index].decimalPoint > longestIntegral)
+					longestIntegral = formatted[index].decimalPoint;
+
+				if (formatted[index].str.length() >= formatted[index].decimalPoint && formatted[index].str.length() - formatted[index].decimalPoint > longestDecimal)
+					longestDecimal = formatted[index].str.length() - formatted[index].decimalPoint;
+			}
+		}
+
+		std::vector<std::string> adjusted(formatted.size(), "");
+
+		for (size_t i = 0; i < formatted.size(); i++)
+		{
+			if (formatted[i].str.empty())
+				continue;
+
+			const auto &term = formatted[i];
+			auto decimal = term.str.length() - term.decimalPoint - 1;
+
+			size_t bufferLeft = 0;
+
+			auto tmp = std::string(longestIntegral - term.decimalPoint, ' ') + term.str + std::string(longestDecimal - decimal, ' ');
+			adjusted[i] = tmp;
+		}
+
 		auto res = utils::toString(adjusted, shape, 1, stripMiddle);
 
 		return res;
 	}
+
 }

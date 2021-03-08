@@ -52,10 +52,10 @@ namespace rapid
 			indexT sig = 1;
 			indexT pos = 0;
 
-			for (indexT i = shape.size() - 1; i >= 0; i--)
+			for (indexT i = shape.size(); i >= 1; i--)
 			{
-				pos += (i < index.size() ? index[i] : 0) * sig;
-				sig *= shape[i];
+				pos += (i - 1 < index.size() ? index[i - 1] : 0) * sig;
+				sig *= shape[i - 1];
 			}
 
 			return pos;
