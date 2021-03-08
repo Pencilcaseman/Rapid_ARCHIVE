@@ -783,7 +783,7 @@ namespace rapid
 						long long i, j, k;
 						arrayType tmp;
 
-					#pragma omp parallel for shared(M, N, K, a, b, c) private(i, j, k, tmp) default(none) num_threads(16)
+					#pragma omp parallel for shared(M, N, K, a, b, c) private(i, j, k, tmp) default(none)
 						for (i = 0; i < M; ++i)
 						{
 							for (j = 0; j < K; ++j)
