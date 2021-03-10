@@ -3,6 +3,8 @@
 #include "../internal.h"
 #include "../math.h"
 
+#include "fromData.h"
+
 #ifndef RAPID_NO_BLAS
 #include "cblasAPI.h"
 #endif
@@ -29,7 +31,7 @@ namespace rapid
 			std::stringstream stream;
 			stream << val;
 
-			auto lastDecimal = stream.str().find_last_of(".");
+			auto lastDecimal = stream.str().find_last_of('.');
 
 			if (std::is_floating_point<t>::value && lastDecimal == std::string::npos)
 			{
@@ -37,7 +39,7 @@ namespace rapid
 				lastDecimal = stream.str().length() - 1;
 			}
 
-			auto lastZero = stream.str().find_last_of("0");
+			auto lastZero = stream.str().find_last_of('0');
 
 			// Value is integral
 			if (lastDecimal == std::string::npos)
@@ -332,7 +334,7 @@ namespace rapid
 					rapidAssert(false, "Dimensions must be positive");
 		#endif
 
-			if (arrShape.size() == 0 || prod(arrShape) == 0)
+			if (arrShape.empty() || prod(arrShape) == 0)
 			{
 				isZeroDim = true;
 				shape = {1};
@@ -417,9 +419,48 @@ namespace rapid
 		template<typename t>
 		static inline Array<arrayType> fromData(const std::initializer_list<t> &data)
 		{
-			// Find dimensions of data
-
+			auto res = Array<arrayType>({data.size()});
+			std::vector<arrayType> values;
+			for (const auto &val : data)
+				values.emplace_back(val);
+			memcpy(res.dataStart, values.data(), sizeof(arrayType) * data.size());
+			return res;
 		}
+
+
+	#define imp_temp template<typename t>
+	#define imp_func_def(x) static inline Array<arrayType> fromData(const x &data)
+	#define imp_func_body	auto res = Array<arrayType>(imp::extractShape(data)); \
+							uint64_t index = 0; \
+							for (const auto &val : data) res[index++] = Array<arrayType>::fromData(val); \
+							return res;
+	#define L std::initializer_list
+
+		// Up to 20-dimensional array setting from data
+		imp_temp imp_func_def(L<L<t>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<t>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<t>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<t>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<t>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<t>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<t>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<t>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>>>>>>>>>>) { imp_func_body }
+		imp_temp imp_func_def(L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<L<t>>>>>>>>>>>>>>>>>>>>) { imp_func_body }
+
+	#undef imp_temp
+	#undef imp_func_def
+	#undef imp_func_body
+	#undef L
 
 		~Array()
 		{

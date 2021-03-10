@@ -296,6 +296,9 @@
     <ClInclude Include="include\rapid\array\cblasAPI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\rapid\array\fromData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\rapid\graphics\glew\doc\advanced.html" />
