@@ -79,6 +79,22 @@ namespace rapid
 		}
 	}
 
+	namespace imp
+	{
+		long int dimsToIndex(const std::vector<uint64_t> &dims, const std::vector<uint64_t> &pos)
+		{
+			uint64_t index = 0;
+			for (long int i = 0; i < dims.size(); i++)
+			{
+				uint64_t sub = pos[i];
+				for (uint64_t j = i; j < dims.size() - 1; j++)
+					sub *= dims[j + 1];
+				index += sub;
+			}
+			return index;
+		}
+	}
+
 	enum class ExecutionType
 	{
 		SERIAL = 0b0001,
@@ -910,6 +926,74 @@ namespace rapid
 				}
 			}
 		#endif
+			}
+
+		inline Array<arrayType> transposed(const std::vector<uint64_t> &axes = std::vector<uint64_t>()) const
+		{
+			// TODO: Check axes are valid
+
+			std::vector<uint64_t> newDims(shape.size());
+			if (axes.empty())
+				for (uint64_t i = 0; i < shape.size(); i++)
+					newDims[i] = shape[shape.size() - i - 1];
+			else
+				for (uint64_t i = 0; i < shape.size(); i++)
+					newDims[i] = shape[axes[i]];
+
+			// Edge case for 1D array
+			if (shape.size() == 1 || (axes.size() == 1 && axes[0] == 0))
+			{
+				auto res = Array<arrayType>(newDims);
+				memcpy(res.dataStart, dataStart, sizeof(arrayType) * prod(newDims));
+				return res;
+			}
+
+			if (shape.size() == 2)
+			{
+				auto res = Array<arrayType>(newDims);
+
+				uint64_t rows = shape[0];
+				uint64_t cols = shape[1];
+
+				for (uint64_t i = 0; i < rows; i++)
+				{
+					for (uint64_t j = 0; j < cols; j++)
+					{
+						res.dataStart[i + j * rows] = dataStart[j + i * cols];
+					}
+				}
+
+				return res;
+			}
+
+			auto res = Array<arrayType>(newDims);
+
+			std::vector<uint64_t> indices(shape.size(), 0);
+			std::vector<uint64_t> indicesRes(shape.size(), 0);
+
+			for (uint64_t i = 0; i < prod(shape); i++)
+			{
+				if (axes.empty())
+					for (uint64_t j = 0; j < shape.size(); j++)
+						indicesRes[j] = indices[shape.size() - j - 1];
+				else
+					for (uint64_t j = 0; j < shape.size(); j++)
+						indicesRes[j] = indices[axes[j]];
+
+				res.dataStart[imp::dimsToIndex(newDims, indicesRes)] = dataStart[imp::dimsToIndex(shape, indices)];
+				
+				indices[shape.size() - 1]++;
+				uint64_t index = shape.size() - 1;
+
+				while (indices[index] >= shape[index] && index > 0)
+				{
+					indices[index] = 0;
+					index--;
+					indices[index]++;
+				}
+			}
+
+			return res;
 		}
 
 		inline Array<arrayType> resized(const std::vector<uint64_t> &newShape) const
@@ -973,7 +1057,7 @@ namespace rapid
 		/// <typeparam name="t"></typeparam>
 		/// <returns></returns>
 		std::string toString() const;
-	};
+		};
 
 	/// <summary>
 	/// Reverse multiplication
@@ -1239,4 +1323,4 @@ namespace rapid
 
 		return res;
 	}
-}
+	}
