@@ -926,11 +926,15 @@ namespace rapid
 				}
 			}
 		#endif
-			}
+		}
 
 		inline Array<arrayType> transposed(const std::vector<uint64_t> &axes = std::vector<uint64_t>()) const
 		{
-			// TODO: Check axes are valid
+			if (axes.size() != shape.size())
+				RapidError("Transpose Error", "Invalid number of axes for array transpose").display();
+			for (uint64_t i = 0; i < axes.size(); i++)
+				if (std::count(axes.begin(), axes.end(), i) != 1)
+					RapidError("Transpose Error", "Dimension does not appear only once").display();
 
 			std::vector<uint64_t> newDims(shape.size());
 			if (axes.empty())
@@ -955,11 +959,39 @@ namespace rapid
 				uint64_t rows = shape[0];
 				uint64_t cols = shape[1];
 
-				for (uint64_t i = 0; i < rows; i++)
+				if (rows * cols < 62500)
 				{
-					for (uint64_t j = 0; j < cols; j++)
+					for (uint64_t i = 0; i < rows; i++)
 					{
-						res.dataStart[i + j * rows] = dataStart[j + i * cols];
+						for (uint64_t j = 0; j < cols; j++)
+						{
+							res.dataStart[i + j * rows] = dataStart[j + i * cols];
+						}
+					}
+				}
+				else
+				{
+					int64_t i = 0, j = 0;
+					const arrayType *__restrict thisData = dataStart;
+					arrayType *__restrict resData = res.dataStart;
+					auto minCols = rapid::rapidMax(cols, 3) - 3;
+
+				#pragma omp parallel for private(i, j) shared(resData, thisData, minCols) default(none) num_threads(8)
+					for (i = 0; i < rows; i++)
+					{
+						for (j = 0; j < minCols; j++)
+						{
+							int64_t p1 = i + j * rows;
+							int64_t p2 = j + i * cols;
+
+							resData[p1 + 0] = thisData[p2 + 0];
+							resData[p1 + 1] = thisData[p2 + 1];
+							resData[p1 + 2] = thisData[p2 + 2];
+							resData[p1 + 3] = thisData[p2 + 3];
+						}
+
+						for (; j < cols; j++)
+							resData[i + j * rows] = thisData[+i * cols];
 					}
 				}
 
@@ -971,25 +1003,53 @@ namespace rapid
 			std::vector<uint64_t> indices(shape.size(), 0);
 			std::vector<uint64_t> indicesRes(shape.size(), 0);
 
-			for (uint64_t i = 0; i < prod(shape); i++)
+			if (prod(shape) < 62000)
 			{
-				if (axes.empty())
-					for (uint64_t j = 0; j < shape.size(); j++)
-						indicesRes[j] = indices[shape.size() - j - 1];
-				else
-					for (uint64_t j = 0; j < shape.size(); j++)
-						indicesRes[j] = indices[axes[j]];
-
-				res.dataStart[imp::dimsToIndex(newDims, indicesRes)] = dataStart[imp::dimsToIndex(shape, indices)];
-				
-				indices[shape.size() - 1]++;
-				uint64_t index = shape.size() - 1;
-
-				while (indices[index] >= shape[index] && index > 0)
+				for (uint64_t i = 0; i < prod(shape); i++)
 				{
-					indices[index] = 0;
-					index--;
-					indices[index]++;
+					if (axes.empty())
+						for (uint64_t j = 0; j < shape.size(); j++)
+							indicesRes[j] = indices[shape.size() - j - 1];
+					else
+						for (uint64_t j = 0; j < shape.size(); j++)
+							indicesRes[j] = indices[axes[j]];
+
+					res.dataStart[imp::dimsToIndex(newDims, indicesRes)] = dataStart[imp::dimsToIndex(shape, indices)];
+
+					indices[shape.size() - 1]++;
+					uint64_t index = shape.size() - 1;
+
+					while (indices[index] >= shape[index] && index > 0)
+					{
+						indices[index] = 0;
+						index--;
+						indices[index]++;
+					}
+				}
+			}
+			else
+			{
+				auto tmpShape = shape;
+				for (int64_t i = 0; i < prod(tmpShape); i++)
+				{
+					if (axes.empty())
+						for (int64_t j = 0; j < tmpShape.size(); j++)
+							indicesRes[j] = indices[tmpShape.size() - j - 1];
+					else
+						for (int64_t j = 0; j < tmpShape.size(); j++)
+							indicesRes[j] = indices[axes[j]];
+
+					res.dataStart[imp::dimsToIndex(newDims, indicesRes)] = dataStart[imp::dimsToIndex(tmpShape, indices)];
+
+					indices[tmpShape.size() - 1]++;
+					int64_t index = tmpShape.size() - 1;
+
+					while (indices[index] >= tmpShape[index] && index > 0)
+					{
+						indices[index] = 0;
+						index--;
+						indices[index]++;
+					}
 				}
 			}
 
@@ -1057,7 +1117,7 @@ namespace rapid
 		/// <typeparam name="t"></typeparam>
 		/// <returns></returns>
 		std::string toString() const;
-		};
+	};
 
 	/// <summary>
 	/// Reverse multiplication
@@ -1323,4 +1383,4 @@ namespace rapid
 
 		return res;
 	}
-	}
+}

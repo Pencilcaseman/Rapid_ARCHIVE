@@ -1,7 +1,7 @@
 #define RAPID_NO_BLAS
-// #define RAPID_NO_AMP
-// #define RAPID_NO_GRAPHICS
-// #define RAPID_CHECK_NAN
+#define RAPID_NO_AMP
+#define RAPID_NO_GRAPHICS
+#define RAPID_CHECK_NAN
 
 #include <iostream>
 #include "include/rapid/rapid.h"
@@ -36,25 +36,26 @@ int main()
 	a.fill(1);
 	b.fill(1);
 
-	START_TIMER(0, 1000);
+	START_TIMER(0, 1);
 	auto res = a.dot(b);
 	END_TIMER(0);
 
 	std::cout << a.toString() << "\n";
 	std::cout << a.dot(b).toString() << "\n";
 
-	START_TIMER(1, 1000);
+	START_TIMER(1, 1);
 	auto x = rapid::Array<double>::fromData({{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}, {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}});
 	END_TIMER(1);
 
-	auto x = rapid::Array<double>::fromData({{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}});
+	auto x = rapid::Array<double>({1000, 1000});
+	x.fill(123);
 
-	START_TIMER(2, 1000);
-	auto res = x.transposed({0, 2, 1});
+	START_TIMER(2, 100);
+	auto res = x.transposed({0, 1});
 	END_TIMER(2);
 
 	std::cout << x.toString() << "\n\n";
-	std::cout << x.transposed({0, 2, 1}).toString() << "\n";
+	std::cout << x.transposed({0, 1}).toString() << "\n";
 
 	return 0;
 }

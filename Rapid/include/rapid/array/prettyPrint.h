@@ -62,7 +62,6 @@ namespace rapid
 					if (i != 0)
 						res += std::string(depth, ' ');
 
-
 					auto begin = adjusted.begin() + i;
 					auto end = adjusted.begin() + i + shape[1];
 					std::vector<std::string> substr(begin, end);
@@ -84,9 +83,9 @@ namespace rapid
 
 				for (size_t i = 0; i < adjusted.size(); i += inc)
 				{
-					if (stripMiddle && shape[0] > 6 && i == shape[1] * 3)
+					if (stripMiddle && shape[0] > 6 && i == inc * 3)
 					{
-						i = adjusted.size() - shape[1] * 3;
+						i = adjusted.size() - inc * 3;
 						res += std::string(depth, ' ') + "...\n\n";
 						count = shape[0] - 3;
 					}
