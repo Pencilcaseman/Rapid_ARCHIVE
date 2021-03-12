@@ -48,6 +48,15 @@ namespace rapid
 			return {stream.str(), lastDecimal};
 		}
 
+		/// <summary>
+		/// Convert an index and a given array shape and return the memory
+		/// offset for the given position in contiguous memory
+		/// </summary>
+		/// <typeparam name="indexT"></typeparam>
+		/// <typeparam name="shapeT"></typeparam>
+		/// <param name="index"></param>
+		/// <param name="shape"></param>
+		/// <returns></returns>
 		template<typename indexT, typename shapeT>
 		inline indexT ndToScalar(const std::vector<indexT> &index, const std::vector<shapeT> &shape)
 		{
@@ -63,6 +72,15 @@ namespace rapid
 			return pos;
 		}
 
+		/// <summary>
+		/// Convert an index and a given array shape and return the memory
+		/// offset for the given position in contiguous memory
+		/// </summary>
+		/// <typeparam name="indexT"></typeparam>
+		/// <typeparam name="shapeT"></typeparam>
+		/// <param name="index"></param>
+		/// <param name="shape"></param>
+		/// <returns></returns>
 		template<typename indexT, typename shapeT>
 		inline indexT ndToScalar(const std::initializer_list<indexT> &index, const std::vector<shapeT> &shape)
 		{
@@ -81,6 +99,12 @@ namespace rapid
 
 	namespace imp
 	{
+		/// <summary>
+		/// Convert a set of dimensions into a memory location. Intended for internal use only
+		/// </summary>
+		/// <param name="dims"></param>
+		/// <param name="pos"></param>
+		/// <returns></returns>
 		long int dimsToIndex(const std::vector<uint64_t> &dims, const std::vector<uint64_t> &pos)
 		{
 			uint64_t index = 0;
@@ -321,6 +345,56 @@ namespace rapid
 			}
 		}
 
+		/// <summary>
+		/// Resize an array to different dimensions and return the result.
+		/// The data stored in the array is copied, so an update in the
+		/// result array will not trigger an update in the parent.
+		/// </summary>
+		/// <param name="newShape"></param>
+		/// <returns></returns>
+		inline Array<arrayType> internal_resized(const std::vector<uint64_t> &newShape) const
+		{
+			rapidAssert(newShape.size() == 2, "Resizing currently only supports 2D array");
+
+			Array<arrayType> res(newShape);
+			auto resData = res.dataStart;
+			auto thisData = dataStart;
+
+			for (size_t i = 0; i < rapid::rapidMin(shape[0], newShape[0]); i++)
+				memcpy(resData + i * newShape[1], thisData + i * shape[1], sizeof(arrayType) * rapid::rapidMin(shape[1], newShape[1]));
+
+			return res;
+		}
+
+		/// <summary>
+		/// Resize an array to different dimensions and return the result.
+		/// The data stored in the array is copied, so an update in the
+		/// result array will not trigger an update in the parent.
+		/// </summary>
+		/// <param name="newShape"></param>
+		/// <returns></returns>
+		inline void internal_resize(const std::vector<uint64_t> &newShape)
+		{
+			auto newThis = internal_resized(newShape);
+
+			// Only delete data if originCount becomes zero
+			(*originCount)--;
+
+			if ((*originCount) == 0)
+			{
+				delete[] dataOrigin;
+				delete originCount;
+			}
+
+			originCount = newThis.originCount;
+			(*originCount)++;
+
+			dataOrigin = newThis.dataOrigin;
+			dataStart = newThis.dataStart;
+
+			shape = newShape;
+		}
+
 	public:
 
 		/// <summary>
@@ -386,17 +460,13 @@ namespace rapid
 			(*originCount)++;
 		}
 
-		// Array(const arrayType &val)
-		// {
-		// 	isZeroDim = true;
-		// 	shape = {1};
-		// 	dataStart = new arrayType[1];
-		// 	dataOrigin = dataStart;
-		// 	dataStart[0] = val;
-		// 	originCount = new size_t;
-		// 	*originCount = 1;
-		// }
-
+		/// <summary>
+		/// Set one array equal to another and copy the memory.
+		/// This means an update in one array will not trigger
+		/// an update in the other
+		/// </summary>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		Array<arrayType> &operator=(const Array<arrayType> &other)
 		{
 			rapidAssert(shape == other.shape, "Invalid shape for array setting");
@@ -404,6 +474,12 @@ namespace rapid
 			return *this;
 		}
 
+		/// <summary>
+		/// Set an array equal to a scalar value. This fills
+		/// the array with the value.
+		/// </summary>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		Array<arrayType> &operator=(const arrayType &other)
 		{
 			fill(other);
@@ -432,6 +508,13 @@ namespace rapid
 			return res;
 		}
 
+		/// <summary>
+		/// Create a new array from an initializer_list. This supports creating
+		/// arrays of up to 20-dimensions via nested initializer lists
+		/// </summary>
+		/// <typeparam name="t"></typeparam>
+		/// <param name="data"></param>
+		/// <returns></returns>
 		template<typename t>
 		static inline Array<arrayType> fromData(const std::initializer_list<t> &data)
 		{
@@ -712,6 +795,16 @@ namespace rapid
 			});
 		}
 
+		/// <summary>
+		/// Calculate the dot product with another array. If the
+		/// arrays are single-dimensional vectors, the vector product
+		/// is used and a scalar value is returned. If the arrays are
+		/// matrices, the matrix product is calculated. Otherwise, the
+		/// dot product of the final two dimensions of the array are
+		/// calculated.
+		/// </summary>
+		/// <param name="other"></param>
+		/// <returns></returns>
 		inline Array<arrayType> dot(const Array<arrayType> &other) const
 		{
 			rapidAssert(shape.size() == other.shape.size(), "Invalid number of dimensions for array dot product");
@@ -862,9 +955,9 @@ namespace rapid
 						// Tile size
 						static const int TS = 32;
 
-						const auto resizedThis = resized({rapid::roundUp(shape[0], (size_t) TS), rapid::roundUp(shape[1], (size_t) TS)});
-						const auto resizedOther = resized({rapid::roundUp(other.shape[0], (size_t) TS), rapid::roundUp(other.shape[1], (size_t) TS)});
-						res.resize({rapid::roundUp(shape[0], (size_t) TS), rapid::roundUp(other.shape[1], (size_t) TS)});
+						const auto resizedThis = internal_resized({rapid::roundUp(shape[0], (size_t) TS), rapid::roundUp(shape[1], (size_t) TS)});
+						const auto resizedOther = internal_resized({rapid::roundUp(other.shape[0], (size_t) TS), rapid::roundUp(other.shape[1], (size_t) TS)});
+						res.internal_resize({rapid::roundUp(shape[0], (size_t) TS), rapid::roundUp(other.shape[1], (size_t) TS)});
 
 						auto M = (unsigned int) resizedThis.shape[0];
 						auto N = (unsigned int) resizedThis.shape[1];
@@ -904,7 +997,7 @@ namespace rapid
 
 						product.synchronize();
 
-						res.resize({shape[0], other.shape[1]});
+						res.internal_resize({shape[0], other.shape[1]});
 					}
 				#endif
 
@@ -928,6 +1021,14 @@ namespace rapid
 		#endif
 		}
 
+		/// <summary>
+		/// Transpose an array and return the result. If the
+		/// array is one dimensional, a vector is returned. The
+		/// order in which the transpose occurs can be set with
+		/// the "axes" parameter
+		/// </summary>
+		/// <param name="axes"></param>
+		/// <returns></returns>
 		inline Array<arrayType> transposed(const std::vector<uint64_t> &axes = std::vector<uint64_t>()) const
 		{
 			if (axes.size() != shape.size())
@@ -1058,38 +1159,20 @@ namespace rapid
 
 		inline Array<arrayType> resized(const std::vector<uint64_t> &newShape) const
 		{
-			rapidAssert(newShape.size() == 2, "Resizing currently only supports 2D array");
+			if (prod(newShape) != prod(shape))
+				RapidError("Invalid Shape", "Invalid reshape size. Number of elements differ").display();
 
-			Array<arrayType> res(newShape);
-			auto resData = res.dataStart;
-			auto thisData = dataStart;
+			bool zeroDim = false;
 
-			for (size_t i = 0; i < rapid::rapidMin(shape[0], newShape[0]); i++)
-				memcpy(resData + i * newShape[1], thisData + i * shape[1], sizeof(arrayType) * rapid::rapidMin(shape[1], newShape[1]));
+			if (zeroDim && newShape.size() == 1)
+				zeroDim = true;
+			else
+				zeroDim = false;
+
+			(*originCount)++;
+			auto res = Array<arrayType>::fromData(newShape, dataOrigin, dataStart, originCount, zeroDim);
 
 			return res;
-		}
-
-		inline void resize(const std::vector<uint64_t> &newShape)
-		{
-			auto newThis = resized(newShape);
-
-			// Only delete data if originCount becomes zero
-			(*originCount)--;
-
-			if ((*originCount) == 0)
-			{
-				delete[] dataOrigin;
-				delete originCount;
-			}
-
-			originCount = newThis.originCount;
-			(*originCount)++;
-
-			dataOrigin = newThis.dataOrigin;
-			dataStart = newThis.dataStart;
-
-			shape = newShape;
 		}
 
 		/// <summary>
@@ -1268,10 +1351,13 @@ namespace rapid
 	/// <param name="end"></param>
 	/// <param name="len"></param>
 	/// <returns></returns>
-	template<typename t>
-	inline Array<t> linspace(t start, t end, size_t len)
+	template<typename s, typename e>
+	inline Array<typename std::common_type<s, e>::type> linspace(s start, e end, size_t len)
 	{
-		Array<t> result({len});
+		using ct = typename std::common_type<s, e>::type;
+
+		Array<ct> result({len});
+		result.isZeroDim = len <= 1;
 
 		if (len == 0)
 			return result;
@@ -1282,11 +1368,49 @@ namespace rapid
 			return result;
 		}
 
-		t inc = (end - start) / (t) (len - 1);
+		ct inc = ((ct) end - (ct) start) / (ct) (len - 1);
 		for (size_t i = 0; i < len; i++)
-			result.dataStart[i] = start + (t) i * inc;
+			result.dataStart[i] = (ct) start + (ct) i * inc;
 
 		return result;
+	}
+
+	/// <summary>
+	/// Create a vector of a specified type, where the values
+	/// increase/decrease linearly between a start and end
+	/// point by an specified
+	/// </summary>
+	/// <typeparam name="s"></typeparam>
+	/// <typeparam name="e"></typeparam>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="start"></param>
+	/// <param name="end"></param>
+	/// <param name="inc"></param>
+	/// <returns></returns>
+	template<typename s, typename e, typename t>
+	inline Array<typename std::common_type<s, e, t>::type> arange(s start, e end, t inc = 1)
+	{
+		using ct = typename std::common_type<s, e, t>::type;
+
+		auto len = (uint64_t) ceil(rapidAbs((ct) end - (ct) start) / (ct) inc);
+		auto res = Array<t>({len});
+		for (uint64_t i = 0; i < len; i++)
+			res[i] = (ct) start + (ct) inc * (ct) i;
+		return res;
+	}
+
+	/// <summary>
+	/// Create a vector of a specified type, where the values
+	/// increase/decrease linearly between a start and end
+	/// point by an specified
+	/// </summary>
+	/// <typeparam name="e"></typeparam>
+	/// <param name="end"></param>
+	/// <returns></returns>
+	template<typename e>
+	inline Array<e> arange(e end)
+	{
+		return arange((e) 0, end, (e) 1);
 	}
 
 	/// <summary>

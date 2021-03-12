@@ -1,5 +1,5 @@
 #define RAPID_NO_BLAS
-#define RAPID_NO_AMP
+// #define RAPID_NO_AMP
 #define RAPID_NO_GRAPHICS
 #define RAPID_CHECK_NAN
 
@@ -56,6 +56,8 @@ int main()
 
 	std::cout << x.toString() << "\n\n";
 	std::cout << x.transposed({0, 1}).toString() << "\n";
+	
+	std::cout << rapid::linspace(1, 8., 16).resized({2, 2, 2, 2}).toString() << "\n";
 
 	return 0;
 }
