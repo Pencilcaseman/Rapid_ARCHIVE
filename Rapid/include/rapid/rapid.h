@@ -4,7 +4,6 @@
 #include "./internal.h"
 #include "./messageBox.h"
 #include "./math.h"
-#include "./matrix.h"
 #include "./array.h"
 #include "./vector.h"
 #include "./network.h"

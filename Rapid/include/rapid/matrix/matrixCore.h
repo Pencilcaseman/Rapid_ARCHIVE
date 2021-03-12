@@ -921,8 +921,8 @@ namespace rapid
 			auto resData = res.data.data();
 			auto thisData = data.data();
 
-			for (size_t i = 0; i < rapid::rapidMin(rows, newRows); i++)
-				memcpy(&resData[i * newCols], &thisData[i * cols], sizeof(dataType) * rapid::rapidMin(cols, newCols));
+			for (size_t i = 0; i < rapid::min(rows, newRows); i++)
+				memcpy(&resData[i * newCols], &thisData[i * cols], sizeof(dataType) * rapid::min(cols, newCols));
 
 			return res;
 		}

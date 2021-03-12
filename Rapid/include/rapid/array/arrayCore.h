@@ -360,8 +360,8 @@ namespace rapid
 			auto resData = res.dataStart;
 			auto thisData = dataStart;
 
-			for (size_t i = 0; i < rapid::rapidMin(shape[0], newShape[0]); i++)
-				memcpy(resData + i * newShape[1], thisData + i * shape[1], sizeof(arrayType) * rapid::rapidMin(shape[1], newShape[1]));
+			for (size_t i = 0; i < rapid::min(shape[0], newShape[0]); i++)
+				memcpy(resData + i * newShape[1], thisData + i * shape[1], sizeof(arrayType) * rapid::min(shape[1], newShape[1]));
 
 			return res;
 		}
@@ -1075,7 +1075,7 @@ namespace rapid
 					int64_t i = 0, j = 0;
 					const arrayType *__restrict thisData = dataStart;
 					arrayType *__restrict resData = res.dataStart;
-					auto minCols = rapid::rapidMax(cols, 3) - 3;
+					auto minCols = rapid::max(cols, 3) - 3;
 
 				#pragma omp parallel for private(i, j) shared(resData, thisData, minCols) default(none) num_threads(8)
 					for (i = 0; i < rows; i++)
@@ -1157,6 +1157,13 @@ namespace rapid
 			return res;
 		}
 
+		/// <summary>
+		/// Resize an array and return the result. The resulting data
+		/// is linked to the parent data, so updating values will
+		/// trigger an update in the parent/child array
+		/// </summary>
+		/// <param name="newShape"></param>
+		/// <returns></returns>
 		inline Array<arrayType> resized(const std::vector<uint64_t> &newShape) const
 		{
 			if (prod(newShape) != prod(shape))
@@ -1164,7 +1171,7 @@ namespace rapid
 
 			bool zeroDim = false;
 
-			if (zeroDim && newShape.size() == 1)
+			if (isZeroDim && newShape.size() == 1)
 				zeroDim = true;
 			else
 				zeroDim = false;
@@ -1173,6 +1180,23 @@ namespace rapid
 			auto res = Array<arrayType>::fromData(newShape, dataOrigin, dataStart, originCount, zeroDim);
 
 			return res;
+		}
+
+		/// <summary>
+		/// Resize an array inplace
+		/// </summary>
+		/// <param name="newShape"></param>
+		inline void resize(const std::vector<uint64_t> &newShape)
+		{
+			if (prod(newShape) != prod(shape))
+				RapidError("Invalid Shape", "Invalid reshape size. Number of elements differ").display();
+
+			if (isZeroDim && newShape.size() == 1)
+				isZeroDim = true;
+			else
+				isZeroDim = false;
+
+			shape = newShape;
 		}
 
 		/// <summary>
@@ -1203,6 +1227,21 @@ namespace rapid
 	};
 
 	/// <summary>
+	/// Create a new array of the same size and dimensions as
+	/// another array, but fill it with zeros.
+	/// </summary>
+	/// <typeparam name="t"></typeparam>
+	/// <param name="other"></param>
+	/// <returns></returns>
+	template<typename t>
+	inline Array<t> zerosLike(const Array<t> &other)
+	{
+		auto res = Array<t>(other.shape);
+		res.fill((t) 0);
+		return res;
+	}
+
+	/// <summary>
 	/// Reverse multiplication
 	/// </summary>
 	/// <typeparam name="t"></typeparam>
@@ -1210,7 +1249,7 @@ namespace rapid
 	/// <param name="other"></param>
 	/// <returns></returns>
 	template<typename t>
-	static inline Array<t> operator*(t val, const Array<t> &other)
+	inline Array<t> operator*(t val, const Array<t> &other)
 	{
 		auto res = Array<t>(other.shape);
 		Array<t>::binaryOpScalarArray(val, other, res, prod(other.shape) > 10000 ? ExecutionType::PARALLEL : ExecutionType::SERIAL, [](t x, t y)
@@ -1392,7 +1431,7 @@ namespace rapid
 	{
 		using ct = typename std::common_type<s, e, t>::type;
 
-		auto len = (uint64_t) ceil(rapidAbs((ct) end - (ct) start) / (ct) inc);
+		auto len = (uint64_t) ceil(abs((ct) end - (ct) start) / (ct) inc);
 		auto res = Array<t>({len});
 		for (uint64_t i = 0; i < len; i++)
 			res[i] = (ct) start + (ct) inc * (ct) i;

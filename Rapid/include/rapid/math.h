@@ -13,54 +13,49 @@ namespace rapid
 	constexpr double sqrt5 = 2.2360679774997896964091736687312762354406183596115257242708972454105209256378;
 
 	template<typename T>
-	inline T &&rapidMin(T &&val)
+	inline T &&min(T &&val)
 	{
 		return std::forward<T>(val);
 	}
 
 	template<typename T0, typename T1, typename... Ts>
-	inline auto rapidMin(T0 &&val1, T1 &&val2, Ts &&... vs)
+	inline auto min(T0 &&val1, T1 &&val2, Ts &&... vs)
 	{
 		return (val1 < val2) ?
-			rapidMin(val1, std::forward<Ts>(vs)...) :
-			rapidMin(val2, std::forward<Ts>(vs)...);
+			min(val1, std::forward<Ts>(vs)...) :
+			min(val2, std::forward<Ts>(vs)...);
 	}
 
 	template<typename T>
-	inline T &&rapidMax(T &&val)
+	inline T &&max(T &&val)
 	{
 		return std::forward<T>(val);
 	}
 
 	template<typename T0, typename T1, typename... Ts>
-	inline auto rapidMax(T0 &&val1, T1 &&val2, Ts &&... vs)
+	inline auto max(T0 &&val1, T1 &&val2, Ts &&... vs)
 	{
 		return (val1 > val2) ?
-			rapidMax(val1, std::forward<Ts>(vs)...) :
-			rapidMax(val2, std::forward<Ts>(vs)...);
+			max(val1, std::forward<Ts>(vs)...) :
+			max(val2, std::forward<Ts>(vs)...);
 	}
 
 	template<typename t>
-	inline t rapidAbs(t a)
+	inline t abs(t a)
 	{
 		if (a < 0)
-		{
 			return -a;
-		}
-		else
-		{
-			return a;
-		}
+		return a;
 	}
 
 	template<>
-	inline unsigned int rapidAbs(unsigned int a)
+	inline unsigned int abs(unsigned int a)
 	{
 		return a;
 	}
 
 	template<>
-	inline unsigned long long rapidAbs(unsigned long long a)
+	inline unsigned long long abs(unsigned long long a)
 	{
 		return a;
 	}
@@ -75,7 +70,7 @@ namespace rapid
 	{
 		auto p1 = x2 + x1;
 		auto p2 = y2 + y1;
-		return sqrt(p1 * p1 + p2 * p2);
+		return std::sqrt(p1 * p1 + p2 * p2);
 	}
 
 	inline long floor(double val)
@@ -139,12 +134,12 @@ namespace rapid
 		if (multiple == 0)
 			return numToRound;
 
-		t remainder = rapidAbs(numToRound) % multiple;
+		t remainder = abs(numToRound) % multiple;
 		if (remainder == 0)
 			return numToRound;
 
 		if (numToRound < 0)
-			return -(rapidAbs(numToRound) - remainder);
+			return -(abs(numToRound) - remainder);
 		else
 			return numToRound + multiple - remainder;
 	}
@@ -208,7 +203,7 @@ namespace rapid
 	template<typename t>
 	inline t round(const t &numToRound, size_t dp = 0)
 	{
-		t remainder = fmod(rapidAbs(numToRound), 1. * pow(10, -((t) dp)));
+		t remainder = fmod(abs(numToRound), 1. * pow(10, -((t) dp)));
 		if (remainder == 0)
 			return numToRound;
 

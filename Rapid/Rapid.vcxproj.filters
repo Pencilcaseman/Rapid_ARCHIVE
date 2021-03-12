@@ -26,9 +26,6 @@
     <ClInclude Include="include\rapid\matrix\matrixArrayView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\rapid\network\deep.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\rapid\matrix\tinyMatrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -263,15 +260,6 @@
     <ClInclude Include="include\rapid\network\networkCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\rapid\network\layers\deepLayer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\rapid\network\layers\layerBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\rapid\network\layers\lstmLayer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\rapid\array\arrayCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -297,6 +285,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\rapid\array\fromData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rapid\network\optimizers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

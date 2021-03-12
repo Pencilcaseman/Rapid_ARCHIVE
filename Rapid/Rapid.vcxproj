@@ -132,7 +132,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\opt\openblas\lib;$(SolutionDir)Rapid\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libopenblas.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libopenblas.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -235,6 +235,7 @@
     <ClInclude Include="include\rapid\IO\createDir.h" />
     <ClInclude Include="include\rapid\IO\systemExecute.h" />
     <ClInclude Include="include\rapid\math.h" />
+    <ClInclude Include="include\rapid\network\optimizers.h" />
     <ClInclude Include="include\rapid\parser.h" />
     <ClInclude Include="include\rapid\parser\mathParserCore.h" />
     <ClInclude Include="include\rapid\matrix.h" />
@@ -245,10 +246,6 @@
     <ClInclude Include="include\rapid\array\arrayCore.h" />
     <ClInclude Include="include\rapid\network.h" />
     <ClInclude Include="include\rapid\network\activations.h" />
-    <ClInclude Include="include\rapid\network\deep.h" />
-    <ClInclude Include="include\rapid\network\layers\layerBase.h" />
-    <ClInclude Include="include\rapid\network\layers\deepLayer.h" />
-    <ClInclude Include="include\rapid\network\layers\lstmLayer.h" />
     <ClInclude Include="include\rapid\network\networkCore.h" />
     <ClInclude Include="include\rapid\parser\utils.h" />
     <ClInclude Include="include\rapid\rapid.h" />
